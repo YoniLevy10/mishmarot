@@ -1,13 +1,19 @@
-import { Auth } from '@supabase/auth-ui-react'
-import { ThemeSupa } from '@supabase/auth-ui-shared'
 import { Navigate, useLocation } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { supabase, supabaseEnv } from '../lib/supabase'
-import type { Session } from '@supabase/supabase-js'
+import type { AuthError, Session } from '@supabase/supabase-js'
+import { Button } from '../components/ui/Button'
+import { Field } from '../components/ui/Field'
 
 export function LoginPage() {
   const location = useLocation()
   const [session, setSession] = useState<Session | null>(null)
+  const [mode, setMode] = useState<'sign_in' | 'sign_up'>('sign_in')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<AuthError | null>(null)
+  const canSubmit = useMemo(() => email.trim().length > 3 && password.length >= 6, [email, password])
 
   useEffect(() => {
     let alive = true
@@ -48,67 +54,78 @@ export function LoginPage() {
     )
   }
 
+  async function submit() {
+    if (!canSubmit || submitting) return
+    setSubmitting(true)
+    setError(null)
+    try {
+      if (mode === 'sign_in') {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        })
+        if (error) setError(error)
+        return
+      }
+
+      const { error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+      })
+      if (error) setError(error)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   return (
     <div className="app-shell min-h-[100svh] px-4 py-8">
       <div className="mb-6 rounded-2xl bg-slate-800/60 p-5">
         <div className="text-2xl font-extrabold text-white">משמרות</div>
-        <div className="mt-1 text-sm text-slate-300/80">כניסה / הרשמה עם אימייל</div>
+        <div className="mt-1 text-sm text-slate-300/80">
+          {mode === 'sign_in' ? 'כניסה עם אימייל' : 'הרשמה עם אימייל'}
+        </div>
       </div>
 
-      <div className="rounded-2xl bg-slate-800/60 p-4">
-        <Auth
-          supabaseClient={supabase}
-          providers={[]}
-          appearance={{
-            theme: ThemeSupa,
-            variables: {
-              default: {
-                colors: {
-                  brand: '#818cf8',
-                  brandAccent: '#a5b4fc',
-                  inputBackground: '#0b1224',
-                  inputBorder: '#334155',
-                  inputText: '#e5e7eb',
-                  inputLabelText: '#e5e7eb',
-                  defaultButtonBackground: '#111827',
-                  defaultButtonBackgroundHover: '#0f172a',
-                  defaultButtonBorder: '#334155',
-                  defaultButtonText: '#e5e7eb',
-                },
-              },
-            },
-          }}
-          theme="dark"
-          localization={{
-            variables: {
-              sign_in: {
-                email_label: 'אימייל',
-                password_label: 'סיסמה',
-                button_label: 'כניסה',
-                loading_button_label: 'טוען…',
-                link_text: 'כבר יש לך משתמש? כניסה',
-              },
-              sign_up: {
-                email_label: 'אימייל',
-                password_label: 'סיסמה',
-                button_label: 'הרשמה',
-                loading_button_label: 'טוען…',
-                link_text: 'אין לך משתמש? הרשמה',
-              },
-              forgotten_password: {
-                email_label: 'אימייל',
-                button_label: 'שלח לינק איפוס',
-                loading_button_label: 'טוען…',
-                link_text: 'שכחת סיסמה?',
-              },
-              update_password: {
-                password_label: 'סיסמה חדשה',
-                button_label: 'עדכן סיסמה',
-                loading_button_label: 'טוען…',
-              },
-            },
-          }}
-        />
+      <div className="rounded-2xl bg-slate-800/60 p-4 text-slate-200">
+        <div className="space-y-3">
+          <Field
+            label="אימייל"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+            inputMode="email"
+          />
+          <Field
+            label="סיסמה"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete={mode === 'sign_in' ? 'current-password' : 'new-password'}
+          />
+
+          {error ? (
+            <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-100">
+              {error.message}
+            </div>
+          ) : null}
+
+          <Button onClick={submit} disabled={!canSubmit || submitting}>
+            {submitting ? 'טוען…' : mode === 'sign_in' ? 'כניסה' : 'הרשמה'}
+          </Button>
+
+          <button
+            type="button"
+            className="w-full rounded-xl px-3 py-2 text-sm text-slate-200/80 hover:bg-slate-900/30"
+            onClick={() => {
+              setError(null)
+              setMode((m) => (m === 'sign_in' ? 'sign_up' : 'sign_in'))
+            }}
+          >
+            {mode === 'sign_in' ? 'אין לך משתמש? הרשמה' : 'כבר יש לך משתמש? כניסה'}
+          </button>
+        </div>
       </div>
     </div>
   )
