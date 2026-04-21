@@ -31,6 +31,7 @@ export function AppLayout() {
         <TabLink to="/">משמרות</TabLink>
         <TabLink to="/summary">סיכום</TabLink>
         <TabLink to="/settings">הגדרות</TabLink>
+        <TabLink to="/dev-journal">יומן</TabLink>
       </nav>
 
       <main className="pb-16">

@@ -5,6 +5,7 @@ import { HomePage } from '../pages/HomePage'
 import { SummaryPage } from '../pages/SummaryPage'
 import { SettingsPage } from '../pages/SettingsPage'
 import { LoginPage } from '../pages/LoginPage'
+import { DevJournalPage } from '../pages/DevJournalPage'
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/summary" element={<SummaryPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/dev-journal" element={<DevJournalPage />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

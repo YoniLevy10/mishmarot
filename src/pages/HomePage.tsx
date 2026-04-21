@@ -1,6 +1,7 @@
 import { addMonths, endOfMonth, format, startOfMonth } from 'date-fns'
 import { he } from 'date-fns/locale'
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { ShiftCard } from '../components/ShiftCard'
 import { ShiftEditorSheet } from '../components/ShiftEditorSheet'
 import { Button } from '../components/ui/Button'
@@ -59,6 +60,20 @@ export function HomePage() {
 
   return (
     <div className="space-y-3">
+      <Card>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="text-sm font-bold text-white">יומן מפתח</div>
+            <div className="mt-1 text-xs text-slate-300/80">
+              מסך סיכום למצב הפרויקט: מה בוצע, מה חסר, ומה הצעדים הבאים.
+            </div>
+          </div>
+          <Link className="text-sm font-semibold text-indigo-200 hover:text-white" to="/dev-journal">
+            פתיחה
+          </Link>
+        </div>
+      </Card>
+
       <Card>
         <div className="flex items-center justify-between gap-2">
           <Button variant="ghost" onClick={() => setMonth((m) => addMonths(m, -1))}>
