@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { AppHeader } from '../components/AppHeader'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
 import { Field } from '../components/ui/Field'
@@ -21,9 +22,11 @@ export function SettingsPage() {
 
   return (
     <div className="space-y-3">
+      <AppHeader user={user} />
+
       <Card>
-        <div className="text-sm font-bold text-white">הגדרות</div>
-        <div className="mt-1 text-xs text-slate-300/80">נשמר לפי המשתמש ב־Supabase.</div>
+        <div className="text-sm font-extrabold text-slate-900 dark:text-white">הגדרות</div>
+        <div className="mt-1 text-xs text-slate-500 dark:text-slate-300/80">נשמר לפי המשתמש ב־Supabase.</div>
       </Card>
 
       <Card>

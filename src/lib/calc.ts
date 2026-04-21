@@ -7,42 +7,66 @@ function normTime(t: string): string {
 }
 
 export function calcShiftPay(shift: Shift, settings: UserSettings): ShiftCalc {
-  const totalHours = calcTotalHours(normTime(shift.start_time), normTime(shift.end_time))
-  const nightHours = calcNightHours(normTime(shift.start_time), normTime(shift.end_time))
+  const start = normTime(shift.start_time)
+  const end = normTime(shift.end_time)
+
+  const totalHours = calcTotalHours(start, end)
+  const nightHours = calcNightHours(start, end)
   const isFri = isFriday(shift.date)
   const isSat = isSaturday(shift.date)
   const rate = settings.hourly_rate
-  const base = settings.base_daily_hours
+  const baseDaily = settings.base_daily_hours
 
+  let baseHours = 0
+  let over125 = 0
+  let over150 = 0
   let pay = 0
 
   if (isSat) {
+    baseHours = totalHours
+    over125 = 0
+    over150 = 0
     pay = totalHours * rate * 1.5
   } else if (isFri) {
-    const baseHours = Math.min(totalHours, base)
-    const overHours = Math.max(0, totalHours - base)
-    pay = baseHours * rate * 1.25 + overHours * rate * 1.5
+    baseHours = Math.min(totalHours, baseDaily)
+    const overHours = Math.max(0, totalHours - baseDaily)
+    over125 = 0
+    over150 = overHours
+    pay = baseHours * rate * 1.25 + over150 * rate * 1.5
   } else {
-    const baseHours = Math.min(totalHours, base)
-    const over = Math.max(0, totalHours - base)
-    const over125 = Math.min(over, 2)
-    const over150 = Math.max(0, over - 2)
+    baseHours = Math.min(totalHours, baseDaily)
+    const over = Math.max(0, totalHours - baseDaily)
+    over125 = Math.min(over, 2)
+    over150 = Math.max(0, over - 2)
     pay = baseHours * rate + over125 * rate * 1.25 + over150 * rate * 1.5
   }
 
-  // Night bonus: 50% on each night hour
-  pay += nightHours * rate * 0.5
+  const nightBonus = nightHours * rate * 0.5
+
+  const tm20Hours = baseHours
+  const tm50Hours = nightHours
 
   const ashel = shift.ashel ? settings.ashel_rate : 0
-  const travel = settings.travel_daily
+  // Travel is modeled as a daily allowance (not per-shift). Call-sites should aggregate by date/month.
+  const travel = 0
+
+  const gross = pay + nightBonus + ashel + travel
 
   return {
     totalHours,
+    baseHours,
+    over125,
+    over150,
     nightHours,
+    isFriday: isFri,
+    isSaturday: isSat,
+    tm20Hours,
+    tm50Hours,
     basePay: pay,
+    nightBonus,
     ashel,
     travel,
-    gross: pay + ashel + travel,
+    gross,
   }
 }
 

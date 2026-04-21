@@ -11,8 +11,15 @@
   - `VITE_SUPABASE_URL`
   - `VITE_SUPABASE_ANON_KEY`
 - **Auth flow**:
-  - `src/pages/LoginPage.tsx` — התחברות/הרשמה עם `signInWithPassword` / `signUp`.
+  - `src/pages/LoginPage.tsx` — התחברות/הרשמה עם `signInWithPassword` / `signUp` + **Google OAuth** (`signInWithOAuth`).
   - `src/app/AuthGate.tsx` — מגן על מסכים פנימיים.
+- **Theme**: מצב בהיר/כהה עם `html.dark` + `src/hooks/useTheme.ts` (כולל bootstrap קטן ב־`index.html` למניעת הבזק).
+- **דוחות/ייצוא**:
+  - ייצוא Excel: `src/lib/export.ts` (מבוסס `xlsx` + `file-saver`)
+  - שיתוף משמרת: `src/lib/share.ts` (Web Share אם קיים, אחרת clipboard)
+- **UI**:
+  - `src/components/AppHeader.tsx` — theme toggle + export + התנתקות
+  - `src/components/SummaryHero.tsx` + `src/components/MonthlyChart.tsx` (Recharts)
 - **DB schema**: `supabase.sql` (להרצה ב‑Supabase SQL Editor).
 - **Deploy**: Vercel (SPA). יש `vercel.json` עם rewrite ל־`/index.html` כדי שלא יהיו 404 על routes כמו `/login`.
 
@@ -30,7 +37,16 @@
 
 הפתרון: טופס login פשוט + Supabase Auth API.
 
-### 3) יומן “מצב פרויקט” בתוך האפליקציה
+### 3) Tailwind v4 + `darkMode: 'class'`
+בפרויקט יש `@import "tailwindcss"` ב־`src/style.css` ולכן נוספה שכבת תאימות:
+- `tailwind.config.js` עם `darkMode: 'class'`
+- `@custom-variant dark (&:where(html.dark, html.dark *));` כדי ש־`dark:` יעבוד עם class על `<html>`.
+
+### 4) מודל “נסיעות יומיות”
+ב־`calcShiftPay` **לא** מחושבות נסיעות ברמת משמרת (כדי לא לכפול כמה משמרות באותו יום).
+במסכים שמציגים סיכום חודשי, הנסיעות מחושבות כ־`travel_daily * מספר ימים ייחודיים עם משמרות בחודש`.
+
+### 5) יומן “מצב פרויקט” בתוך האפליקציה
 נוסף מסך פנימי:
 - route: `/dev-journal`
 - קובץ: `src/pages/DevJournalPage.tsx`
@@ -40,6 +56,7 @@
 ## מה לבדוק כשמגיעים לפרויקט (צ’קליסט)
 ### Supabase
 - Email provider מופעל.
+- Google provider מופעל + Client ID/Secret מ־Google Cloud Console.
 - Redirect URLs מתאימים (אם יש flows עם redirect).
 - `supabase.sql` הורץ בהצלחה.
 - **RLS/Policies**: לוודא שמשתמש רואה/כותב רק את הרשומות שלו (`profiles`, `shifts`, וכו’).
@@ -61,8 +78,10 @@
 
 ## נקודות “ידועות” / חוב טכני
 - `supabase/.temp/cli-latest` עלה לריפו בעבר — לא קריטי, אבל אפשר לנקות/להחריג אם מפריע.
+- הוספת `recharts`/`xlsx` מגדילה את גודל ה־bundle; אם זה חשוב, כדאי לעשות lazy import למסכים הרלוונטיים.
 
 ## הצעדים הבאים המומלצים (לפי עדיפות)
 1) “שכחתי סיסמה” + redirect flow ב‑Supabase.
 2) בדיקות CI מינימליות (`npm run build`).
 3) להחליט אם `/dev-journal` צריך להיות נגיש בפרודקשן לכולם (כרגע זה מאחורי AuthGate).
+4) לשפר chunking (dynamic import) כדי להקטין את ה־JS בפרודקשן.

@@ -15,6 +15,20 @@ export async function listShiftsForMonth(userId: string, monthStart: string, mon
   return (data ?? []) as Shift[]
 }
 
+export async function listShiftsForRange(userId: string, rangeStart: string, rangeEnd: string) {
+  const { data, error } = await supabase
+    .from('shifts')
+    .select('*')
+    .eq('user_id', userId)
+    .gte('date', rangeStart)
+    .lte('date', rangeEnd)
+    .order('date', { ascending: true })
+    .order('start_time', { ascending: true })
+
+  if (error) throw error
+  return (data ?? []) as Shift[]
+}
+
 export async function upsertShift(shift: Partial<Shift> & { user_id: string }) {
   const { data, error } = await supabase.from('shifts').upsert(shift).select('*').single()
   if (error) throw error

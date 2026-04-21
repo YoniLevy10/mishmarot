@@ -2,6 +2,7 @@ import { addMonths, endOfMonth, format, startOfMonth } from 'date-fns'
 import { he } from 'date-fns/locale'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { AppHeader } from '../components/AppHeader'
 import { ShiftCard } from '../components/ShiftCard'
 import { ShiftEditorSheet } from '../components/ShiftEditorSheet'
 import { Button } from '../components/ui/Button'
@@ -10,6 +11,7 @@ import { Fab } from '../components/ui/Fab'
 import { useProfileSettings } from '../hooks/useProfileSettings'
 import { useSessionUser } from '../hooks/useSessionUser'
 import { calcShiftPay } from '../lib/calc'
+import { exportToExcel } from '../lib/export'
 import { listShiftsForMonth, upsertShift, deleteShift } from '../lib/shifts'
 import type { Shift } from '../types/domain'
 
@@ -52,7 +54,10 @@ export function HomePage() {
 
   const totals = useMemo(() => {
     if (settings.hourly_rate <= 0) return { gross: 0, count: shifts.length }
-    const gross = shifts.reduce((sum, s) => sum + calcShiftPay(s, settings).gross, 0)
+    const shiftGross = shifts.reduce((sum, s) => sum + calcShiftPay(s, settings).gross, 0)
+    const uniqueDays = new Set(shifts.map((s) => s.date)).size
+    const travelTotal = settings.travel_daily * uniqueDays
+    const gross = shiftGross + travelTotal
     return { gross, count: shifts.length }
   }, [settings, shifts])
 
@@ -60,15 +65,24 @@ export function HomePage() {
 
   return (
     <div className="space-y-3">
+      <AppHeader
+        user={user}
+        showExport
+        onExport={() => {
+          if (!user) return
+          exportToExcel(shifts, settings, monthLabel)
+        }}
+      />
+
       <Card>
         <div className="flex items-start justify-between gap-3">
           <div>
-            <div className="text-sm font-bold text-white">יומן מפתח</div>
-            <div className="mt-1 text-xs text-slate-300/80">
+            <div className="text-sm font-extrabold text-slate-900 dark:text-white">יומן מפתח</div>
+            <div className="mt-1 text-xs text-slate-500 dark:text-slate-300/80">
               מסך סיכום למצב הפרויקט: מה בוצע, מה חסר, ומה הצעדים הבאים.
             </div>
           </div>
-          <Link className="text-sm font-semibold text-indigo-200 hover:text-white" to="/dev-journal">
+          <Link className="text-sm font-semibold text-blue-700 hover:text-blue-800 dark:text-indigo-200 dark:hover:text-white" to="/dev-journal">
             פתיחה
           </Link>
         </div>
@@ -79,21 +93,23 @@ export function HomePage() {
           <Button variant="ghost" onClick={() => setMonth((m) => addMonths(m, -1))}>
             ←
           </Button>
-          <div className="text-sm font-bold text-white">{monthLabel}</div>
+          <div className="text-sm font-extrabold text-slate-900 dark:text-white">{monthLabel}</div>
           <Button variant="ghost" onClick={() => setMonth((m) => addMonths(m, 1))}>
             →
           </Button>
         </div>
-        <div className="mt-2 text-xs text-slate-300/80">
+        <div className="mt-2 text-xs text-slate-500 dark:text-slate-300/80">
           {settings.hourly_rate > 0 ? `הערכת ברוטו לחודש: ₪${totals.gross.toFixed(0)}` : 'הגדר תעריף בהגדרות כדי לראות שכר משוער.'}
         </div>
       </Card>
 
       {loading || settingsLoading ? (
-        <Card>טוען משמרות…</Card>
+        <Card>
+          <div className="text-sm text-slate-700 dark:text-slate-200">טוען משמרות…</div>
+        </Card>
       ) : shifts.length === 0 ? (
         <Card>
-          אין משמרות בחודש הזה. לחץ על “הוספה” כדי להתחיל.
+          <div className="text-sm text-slate-700 dark:text-slate-200">אין משמרות בחודש הזה. לחץ על “הוספה” כדי להתחיל.</div>
         </Card>
       ) : (
         <div className="space-y-3">

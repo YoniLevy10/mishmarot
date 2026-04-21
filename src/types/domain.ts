@@ -32,8 +32,16 @@ export type UserSettings = {
 
 export type ShiftCalc = {
   totalHours: number
+  baseHours: number
+  over125: number
+  over150: number
   nightHours: number
+  isFriday: boolean
+  isSaturday: boolean
+  tm20Hours: number
+  tm50Hours: number
   basePay: number
+  nightBonus: number
   ashel: number
   travel: number
   gross: number

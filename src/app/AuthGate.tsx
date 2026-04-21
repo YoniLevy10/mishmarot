@@ -69,7 +69,7 @@ export function AuthGate() {
   if (loading) {
     return (
       <div className="app-shell min-h-[100svh] px-4 py-6">
-        <div className="rounded-2xl bg-slate-800/60 p-4 text-slate-200">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 text-slate-700 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200">
           טוען…
         </div>
       </div>
@@ -83,7 +83,7 @@ export function AuthGate() {
   if (!profileReady) {
     return (
       <div className="app-shell min-h-[100svh] px-4 py-6">
-        <div className="rounded-2xl bg-slate-800/60 p-4 text-slate-200">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 text-slate-700 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200">
           מכין פרופיל…
         </div>
       </div>

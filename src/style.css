@@ -1,7 +1,8 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(html.dark, html.dark *));
+
 :root {
-  color-scheme: dark;
   font-family: "Heebo", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
@@ -10,8 +11,21 @@ body {
   height: 100%;
 }
 
+html {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
 body {
   margin: 0;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+html.dark body {
   background: #0f172a;
   color: #e5e7eb;
 }
