@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import type { Session } from '@supabase/supabase-js'
-import { supabase } from '../lib/supabase'
+import { supabase, supabaseEnv } from '../lib/supabase'
 import { ensureProfile } from '../lib/profiles'
 
 export function AuthGate() {
@@ -12,6 +12,14 @@ export function AuthGate() {
 
   useEffect(() => {
     let alive = true
+
+    if (!supabaseEnv.ok) {
+      setSession(null)
+      setLoading(false)
+      return () => {
+        alive = false
+      }
+    }
 
     async function boot() {
       const { data, error } = await supabase.auth.getSession()

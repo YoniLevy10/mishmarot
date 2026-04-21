@@ -2,7 +2,7 @@ import { Auth } from '@supabase/auth-ui-react'
 import { ThemeSupa } from '@supabase/auth-ui-shared'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { supabase, supabaseEnv } from '../lib/supabase'
 import type { Session } from '@supabase/supabase-js'
 
 export function LoginPage() {
@@ -24,6 +24,29 @@ export function LoginPage() {
 
   const redirectTo = (location.state as { from?: string } | null)?.from ?? '/'
   if (session?.user) return <Navigate to={redirectTo} replace />
+
+  if (!supabaseEnv.ok) {
+    return (
+      <div className="app-shell min-h-[100svh] px-4 py-8">
+        <div className="mb-6 rounded-2xl bg-slate-800/60 p-5">
+          <div className="text-2xl font-extrabold text-white">משמרות</div>
+          <div className="mt-1 text-sm text-slate-300/80">חסר קונפיגורציה של Supabase</div>
+        </div>
+
+        <div className="rounded-2xl bg-slate-800/60 p-4 text-slate-200">
+          <div className="text-sm font-bold text-white">צריך להגדיר ב‑Vercel:</div>
+          <ul className="mt-2 list-inside list-disc text-sm text-slate-200/90">
+            {supabaseEnv.missing.map((name) => (
+              <li key={name}>
+                <code className="text-slate-100">{name}</code>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-3 text-xs text-slate-300/80">אחרי שמגדירים, עושים Redeploy ואז רענון לדף.</div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="app-shell min-h-[100svh] px-4 py-8">
